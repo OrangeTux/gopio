@@ -1,3 +1,4 @@
+// Package gopio provides a struct and a few functions to interact with the GPIO pins on the Aria G25.
 package gopio
 
 import (
@@ -5,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-    "strconv"
+	"strconv"
 )
 
 // Kernel id's of all pins, see http://www.acmesystems.it/pinout_ariag25.
@@ -96,10 +97,10 @@ const (
 
 // A Pin represents a single Pin off the Aria G25.
 type Pin struct {
-	KernelId  uint64 // Kernel id of pin.
-	Direction string
+	KernelId uint64 // Kernel id of pin.
 }
 
+// Export control of GPIO to userspace.
 func (pin *Pin) export() {
 	b := make([]byte, 1)
 	binary.PutUvarint(b, pin.KernelId)
@@ -110,36 +111,28 @@ func (pin *Pin) export() {
 	}
 }
 
+// Set direction of Pin to either "in" or "out" for reading or writing.
 func (pin *Pin) setDirection(direction string) {
 	path := fmt.Sprintf("/sys/class/gpio/gpio%d/direction", pin.KernelId)
 	err := ioutil.WriteFile(path, []byte(direction), 0644)
 
 	if err != nil {
-		log.Fatalf("Could not open file for writing direction of %v: %v", pin.KernelId, err)
+		log.Fatalf("Could not open file for writing direction of %d: %s", pin.KernelId, err)
 	}
-
-	pin.Direction = direction
 }
 
 // Return current value of Pin.
-func (pin Pin) Read() (value int) {
+func (pin Pin) Read() int {
 	pin.setDirection(IN)
 
 	path := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin.KernelId)
 	b, err := ioutil.ReadFile(path)
 
 	if err != nil {
-        log.Fatal("Couldn't read GPIO: %v.", err)
+		log.Fatal("Couldn't read GPIO: %v.", err)
 	}
 
-    log.Printf("Read %d from GPIO.", b)
-
-    value, err = strconv.Atoi(string(b[0]))
-    log.Printf("Read %d from GPIO!", value)
-
-	if err != nil {
-		log.Fatalf("Couldn't read value from GPIO: %v.", err)
-	}
+	value, _ = strconv.Atoi(string(b[0]))
 
 	return value
 }

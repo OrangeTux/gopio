@@ -1,11 +1,11 @@
 package gopio
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"log"
+    "strconv"
 )
 
 // Kernel id's of all pins, see http://www.acmesystems.it/pinout_ariag25.
@@ -96,49 +96,49 @@ const (
 
 // A Pin represents a single Pin off the Aria G25.
 type Pin struct {
-	kernelID  uint64 // Kernel id of pin.
-	direction string
+	KernelId  uint64 // Kernel id of pin.
+	Direction string
 }
 
 func (pin *Pin) export() {
 	b := make([]byte, 1)
-	binary.PutUvarint(b, pin.kernelID)
+	binary.PutUvarint(b, pin.KernelId)
 	err := ioutil.WriteFile("/sys/class/gpio/export", b, 0644)
 
 	if err != nil {
-		log.Fatal("Could not export pin with %b.", pin.kernelID)
+		log.Fatal("Could not export pin with %b.", pin.KernelId)
 	}
 }
 
 func (pin *Pin) setDirection(direction string) {
-	path := fmt.Sprintf("/sys/class/gpio/gpio%b/direction", pin.kernelID)
+	path := fmt.Sprintf("/sys/class/gpio/gpio%d/direction", pin.KernelId)
 	err := ioutil.WriteFile(path, []byte(direction), 0644)
 
 	if err != nil {
-		log.Fatal("Could not open file for writing direction of %b.", pin.kernelID)
+		log.Fatalf("Could not open file for writing direction of %v: %v", pin.KernelId, err)
 	}
 
-	pin.direction = direction
+	pin.Direction = direction
 }
 
 // Return current value of Pin.
 func (pin Pin) Read() (value int) {
-	if pin.direction != IN {
-		pin.setDirection(IN)
-	}
+	pin.setDirection(IN)
 
-	path := fmt.Sprintf("/sys/class/gpio/gpio%b", pin.kernelID)
+	path := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin.KernelId)
 	b, err := ioutil.ReadFile(path)
 
 	if err != nil {
-		log.Fatal("Couldn't read GPIO.")
+        log.Fatal("Couldn't read GPIO: %v.", err)
 	}
 
-	buf := bytes.NewReader(b)
-	err = binary.Read(buf, binary.LittleEndian, &value)
+    log.Printf("Read %d from GPIO.", b)
+
+    value, err = strconv.Atoi(string(b[0]))
+    log.Printf("Read %d from GPIO!", value)
 
 	if err != nil {
-		log.Fatal("Couldn't read value from GPIO.")
+		log.Fatalf("Couldn't read value from GPIO: %v.", err)
 	}
 
 	return value

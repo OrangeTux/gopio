@@ -11,9 +11,9 @@ import (
 )
 
 var tempDir, _ = ioutil.TempDir("", "")
+var pin = Pin{N22}
 
-func TestPin(t *testing.T) {
-
+func TestMain(m *testing.M) {
 	getSignalPath = func(pin *Pin) string {
 		return tempDir
 	}
@@ -23,9 +23,13 @@ func TestPin(t *testing.T) {
 	f, _ := os.Create(filepath.Join(tempDir, "value"))
 	f.Write([]byte("0"))
 
-	Convey("Given I have a Pin", t, func() {
-		pin := Pin{N22}
+	os.Exit(m.Run())
 
+}
+
+func TestPin(t *testing.T) {
+
+	Convey("Given I have a Pin", t, func() {
 		Convey("When I export it it", func() {
 			pin.Export()
 
@@ -66,4 +70,16 @@ func TestPin(t *testing.T) {
 			})
 		})
 	})
+}
+
+func BenchmarkReadPin(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		pin.Read()
+	}
+}
+
+func BenchmarkWritePin(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		pin.Write(0)
+	}
 }

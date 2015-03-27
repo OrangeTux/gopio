@@ -2,9 +2,9 @@
 package gopio
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	"strconv"
 )
 
@@ -82,17 +82,19 @@ const (
 	W23
 )
 
-// Values that can be read and written from/to Pin.
-const (
-	LOW  = 0
-	HIGH = 1
-)
-
 // Directions for reading or writing.
 const (
-	IN  = "in"
-	OUT = "out"
+	In  = "in"
+	Out = "out"
 )
+
+// Path to control interfaces. Not a constant so we can change this path in tests.
+var ControlPath string = "/sys/class/gpio/"
+
+// Return path to GPIO signal directory, like /sys/class/gpio/gpio114/
+var getSignalPath = func(pin *Pin) string {
+	return filepath.Join(ControlPath, strconv.Itoa(pin.KernelId), "/")
+}
 
 // A Pin represents a single Pin off the Aria G25.
 type Pin struct {
@@ -100,9 +102,9 @@ type Pin struct {
 }
 
 // Export control of GPIO to userspace.
-func (pin *Pin) export() {
+func (pin *Pin) Export() {
 	b := []byte(strconv.Itoa(pin.KernelId))
-	err := ioutil.WriteFile("/sys/class/gpio/export", b, 0755)
+	err := ioutil.WriteFile(filepath.Join(ControlPath, "export"), b, 0755)
 
 	if err != nil {
 		log.Fatalf("Could not export pin with %b.", pin.KernelId)
@@ -111,7 +113,7 @@ func (pin *Pin) export() {
 
 // Set direction of Pin to either "in" or "out" for reading or writing.
 func (pin *Pin) setDirection(direction string) {
-	path := fmt.Sprintf("/sys/class/gpio/gpio%d/direction", pin.KernelId)
+	path := filepath.Join(getSignalPath(pin), "direction")
 	err := ioutil.WriteFile(path, []byte(direction), 0755)
 
 	if err != nil {
@@ -121,13 +123,17 @@ func (pin *Pin) setDirection(direction string) {
 
 // Return current value of Pin.
 func (pin *Pin) Read() int {
-	pin.setDirection(IN)
+	pin.setDirection(In)
 
-	path := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin.KernelId)
+	path := filepath.Join(getSignalPath(pin), "value")
 	b, err := ioutil.ReadFile(path)
 
 	if err != nil {
 		log.Fatalf("Couldn't read GPIO: %v.", err)
+	}
+
+	if len(b) == 0 {
+		log.Fatalf("Couldn't read state of pin from %v: file contains 0 bytes.", path)
 	}
 
 	value, _ := strconv.Atoi(string(b[0]))
@@ -137,8 +143,8 @@ func (pin *Pin) Read() int {
 
 // Write value to Pin.
 func (pin *Pin) Write(value int) error {
-	pin.setDirection(OUT)
-	path := fmt.Sprintf("/sys/class/gpio/gpio%d/value", pin.KernelId)
+	pin.setDirection(Out)
+	path := filepath.Join(getSignalPath(pin), "value")
 
 	b := []byte(strconv.Itoa(value))
 	return ioutil.WriteFile(path, b, 0755)

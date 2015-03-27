@@ -18,7 +18,7 @@ A Go package to interact with the GPIO pins on the [Aria G25][aria].
 ## Todo
     
 - [x] ~~Read and write from GPIO pin.~~
-- [ ] [#1][1] Write tests
+- [x] [#1][1] Write tests
 - [ ] [#3][3] Support callback on edges.
 - [ ] [#4][4] Use memory map to interacti with GPIO pins.
 - [ ] [#2][2] Write benchmarks

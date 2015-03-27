@@ -6,13 +6,13 @@ A Go package to interact with the GPIO pins on the [Aria G25][aria].
 ## Usage
 
 ```go
-    import "github.com/orangetux/gopio"
+import "github.com/orangetux/gopio"
 
-    pin = gopio.Pin{gopio.N22}
-    pin.Export()
-    // Value is either 0 or 1.
-    v := pin.Read()
-    pin.Write(v)
+pin = gopio.Pin{gopio.N22}
+pin.Export()
+// Value is either 0 or 1.
+v := pin.Read()
+pin.Write(v)
 ```
 
 ## Todo

@@ -21,7 +21,7 @@ pin.Write(v)
 - [x] ~~[#1][1] Write tests.~~
 - [ ] [#3][3] Support callback on edges.
 - [ ] [#4][4] Use memory map to interact with GPIO pins.
-- [ ] [#2][2] Write benchmarks.
+- [x] ~~[#2][2] Write benchmarks.~~
 
 [aria]:http://www.acmesystems.it/aria
 [1]:https://github.com/OrangeTux/gopio/issues/1

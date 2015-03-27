@@ -1,3 +1,5 @@
+[![Build
+Status](https://travis-ci.org/OrangeTux/gopio.svg?branch=master)](https://travis-ci.org/OrangeTux/gopio)
 # GoPio
 A Go package to interact with the GPIO pins on the [Aria G25][aria].
 
@@ -6,6 +8,7 @@ A Go package to interact with the GPIO pins on the [Aria G25][aria].
     import "github.com/orangetux/gopio"
 
     pin = gopio.Pin{gopio.N22}
+    pin.Export()
     // Value is either 0 or 1.
     v := pin.Read()
     pin.Write(v)
